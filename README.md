@@ -43,7 +43,7 @@ docker run -d \
   -e EMAIL_SUBJECT='Subject' \
   -e SMTP_SERVER='smtp.server.com' \
   -e SMTP_PORT='587' \
-  -e SMTP_USERNAME='USername' \
+  -e SMTP_USERNAME='Username' \
   -e SMTP_PASSWORD='Password' \
   -p 5000:5000 \
   cannycollector
