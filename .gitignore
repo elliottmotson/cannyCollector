@@ -1,0 +1,4 @@
+venv
+.env
+alert_log.json
+alert_records.db

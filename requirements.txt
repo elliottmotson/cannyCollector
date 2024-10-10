@@ -1,0 +1,4 @@
+flask
+wheel
+python-dotenv
+exchangelib
