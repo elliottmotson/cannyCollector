@@ -12,10 +12,9 @@ import logging.handlers
 
 Incoming openCanary agent data is sent to:
 
-1. Syslog (local)
-2. Email (Microsoft Exchange)
-3. Database (alert_records.db)
-4. Log file (alert_log.json)
+1. Email (Microsoft Exchange)
+2. Database (alert_records.db)
+3. Log file (alert_log.json)
 
 Future improvements:
 
@@ -27,18 +26,9 @@ Future improvements:
 
 '''
 
-
 app = Flask(__name__)
 
 load_dotenv()
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-syslog_handler = logging.handlers.SysLogHandler(address='/dev/log')  # Use 'localhost' and port 514 for remote syslog
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-syslog_handler.setFormatter(formatter)
-logger.addHandler(syslog_handler)
-# logger.info('Send to syslog')
 
 # Fetch env
 sender_email = os.getenv('SENDER_EMAIL')
@@ -100,7 +90,6 @@ def openCanary_webhook():
         {"message": "%(message)s"}
         '''
         print("Webhook data received:", json.dumps(webhook_data, indent=4))
-        logger.info('Webhook data received:', json.dumps(webhook_data, indent=4))
         sendEmail(webhook_data)
         toDatabase(webhook_data)
         # Save to a log file

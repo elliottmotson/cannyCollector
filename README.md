@@ -28,3 +28,23 @@ pip install -r requirements.txt
 ```
 python3 cannyCollector.py
 ```
+
+## Docker 
+```
+docker build -t cannycollector .
+```
+### Run
+
+```
+docker run -d \
+  --name cannycollector \
+  -e SENDER_EMAIL='Email' \
+  -e RECEIVER_EMAIL='Password' \
+  -e EMAIL_SUBJECT='Subject' \
+  -e SMTP_SERVER='smtp.server.com' \
+  -e SMTP_PORT='587' \
+  -e SMTP_USERNAME='USername' \
+  -e SMTP_PASSWORD='Password' \
+  -p 5000:5000 \
+  cannycollector
+```
