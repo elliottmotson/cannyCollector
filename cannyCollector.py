@@ -13,7 +13,7 @@ import logging.handlers
 Incoming openCanary agent data is sent to:
 
 1. Email (Microsoft Exchange)
-2. Database (alert_records.db)
+2. Sqlite3 Database (alert_records.db)
 3. Log file (alert_log.json)
 
 Future improvements:
@@ -22,7 +22,7 @@ Future improvements:
 2. Grafana dashboard for alert_records.db
 3. Logrotation for alert_log.json with backup
 4. Flask frontend
-5. Dockerize the app
+5. Dockerize the app [Done]
 
 '''
 
@@ -84,22 +84,27 @@ def toDatabase(webhook_data):
 # Route for OpenCanary to hit
 @app.route('/collect', methods=['POST'])
 def openCanary_webhook():
+    print("Raw Request Headers:", request.headers, "\n")
     if request.is_json:
-        webhook_data = request.get_json()
-        '''
-        {"message": "%(message)s"}
-        '''
-        print("Webhook data received:", json.dumps(webhook_data, indent=4))
-        sendEmail(webhook_data)
-        toDatabase(webhook_data)
-        # Save to a log file
-        with open('alert_log.json', 'a') as log_file:
-            json.dump(webhook_data, log_file)
-            log_file.write('\n')
-
-        return jsonify({'status': 'success', 'message': 'Webhook received'}), 200
+        try:
+            webhook_data = request.get_json()
+            if 'message' in webhook_data:
+                message_data = json.loads(webhook_data['message'])  # String to JSON
+                webhook_data['message'] = message_data
+            print("Parsed webhook data:", json.dumps(webhook_data, indent=4))
+            sendEmail(webhook_data)
+            toDatabase(webhook_data)
+            with open('alert_log.json', 'a') as log_file:
+                json.dump(webhook_data, log_file)
+                log_file.write('\n')
+            return jsonify({'status': 'success', 'message': 'Webhook received'}), 200
+        except Exception as e:
+            print("Error processing request:", e)
+            return jsonify({'status': 'error', 'message': 'Invalid JSON payload'}), 400
     else:
-        return jsonify({'status': 'error', 'message': 'Invalid payload'}), 400
+        print("Invalid payload format. Expected JSON. Content-Type:", request.content_type)
+        return jsonify({'status': 'error', 'message': 'Invalid payload format, expected JSON'}), 400
+
     
 
 if __name__ == '__main__':
