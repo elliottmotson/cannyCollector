@@ -53,7 +53,6 @@ def sendEmail(webhook_data):
         )
         message.send()
         print("Email sent successfully")
-
     except Exception as e:
         print("Error sending email:", e)
 
@@ -62,16 +61,48 @@ def toDatabase(webhook_data):
     try:
         conn = sqlite3.connect('alert_records.db')
         cursor = conn.cursor()
+
+        # Webhook data
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS alert_records (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                data TEXT NOT NULL,
+                dst_host TEXT,
+                dst_port INTEGER,
+                local_time TEXT,
+                local_time_adjusted TEXT,
+                password TEXT,
+                username TEXT,
+                logtype INTEGER,
+                node_id TEXT,
+                src_host TEXT,
+                src_port INTEGER,
+                utc_time TEXT,
                 received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+
+        message = webhook_data.get('message', {})
+        dst_host = message.get("dst_host")
+        dst_port = message.get("dst_port")
+        local_time = message.get("local_time")
+        local_time_adjusted = message.get("local_time_adjusted")
+        logdata = message.get("logdata", {})
+        password = logdata.get("PASSWORD")
+        username = logdata.get("USERNAME")
+        logtype = message.get("logtype")
+        node_id = message.get("node_id")
+        src_host = message.get("src_host")
+        src_port = message.get("src_port")
+        utc_time = message.get("utc_time")
+
         cursor.execute('''
-            INSERT INTO alert_records (data) VALUES (?)
-        ''', (json.dumps(webhook_data),))
+            INSERT INTO alert_records (
+                dst_host, dst_port, local_time, local_time_adjusted, 
+                password, username, logtype, node_id, src_host, src_port, utc_time
+            ) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (dst_host, dst_port, local_time, local_time_adjusted, password, username, logtype, node_id, src_host, src_port, utc_time))
+
         conn.commit()
         print("Webhook data inserted into the database successfully")
     except sqlite3.Error as e:
@@ -105,7 +136,6 @@ def openCanary_webhook():
         print("Invalid payload format. Expected JSON. Content-Type:", request.content_type)
         return jsonify({'status': 'error', 'message': 'Invalid payload format, expected JSON'}), 400
 
-    
 
 if __name__ == '__main__':
     # Flask run
